@@ -1,6 +1,7 @@
 #ifndef _MAZE_GEN_H_
 #define _MAZE_GEN_H_
 
+#include <iostream>
 #include <vector>
 
 
@@ -16,18 +17,30 @@ class Cell {
             ctNormal
         } CellType;
 
+        typedef enum {
+            cdTop,
+            cdRight,
+            cdBottom,
+            cdLeft
+        } CellDirection;
+
         Cell(int x, int y, CellType type, bool walls[4])
             : x_(x)
             , y_(y)
             , path_(nullptr)
             , type_(type)
-            {
-                for (int i = 0; i < 4; i++)
-                    walls_[i] = walls[i];
-            };
+        {
+            for (int i = 0; i < 4; i++)
+                walls_[i] = walls[i];
+        };
 
         CellType type() {return type_;};
-    
+        bool walls(CellDirection dir) {return walls_[dir];}
+        int x() {return x_;};
+        int y() {return y_;};
+        Path* path() {return path_;};
+        void set_wall(CellDirection dir, bool state) {walls_[dir] = state;};
+
     private:
         int x_, y_;
         Path *path_;
@@ -49,9 +62,11 @@ class Path {
         Path(Field *field, PathType type, Cell *first)
             : field_(field)
             , type_(type)
-            {
-                cells_.push_back(first);
-            }
+        {
+            cells_.push_back(first);
+        };
+
+        bool create();
 
     private:
         Field *field_;
@@ -65,8 +80,9 @@ class Field {
     public:
         Field(int w, int h, int start, int finish);
 
-        Cell get_cell(int x, int y);
 
+        Cell& get_cell(int x, int y);
+        bool trace_route();
     
     private:
         int w_, h_;
@@ -76,6 +92,8 @@ class Field {
         
         std::vector<Cell> cells_;
         std::vector<Path> pathes_;
+
+        bool create_path();
 };
 
 
