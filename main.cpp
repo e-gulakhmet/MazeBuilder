@@ -8,7 +8,7 @@ int main(int, char**) {
     Field field(6, 6, 3, 2);
 
     // Инициализация генератора случайных чисел
-    std::srand(0);
+    std::srand(10);
 
     // Создаем основной путь
 
@@ -49,10 +49,10 @@ int main(int, char**) {
     for (int y = 0; y < 6; y++) {
         for (int x = 0; x < 6; x++) {
             Cell cell = field.get_cell(x, y);
-                if (cell.path() == &field.get_path(0))
-                    std::cout << "1";
+                if (cell.path() != nullptr) // TODO: Измить условие, чтобы бьла возможность определять к какому пути принадлежит ячейка
+                    std::cout << "1 ";
                 else
-                    std::cout << "0";
+                    std::cout << "0 ";
         }
         std::cout << '\n';
     }

@@ -40,10 +40,12 @@ class Cell {
         int y() {return y_;};
         Path* path() {return path_;};
         void set_wall(CellDirection dir, bool state) {walls_[dir] = state;};
+        void set_path(Path* path) {path_ = path;};
+        void remove_path() {path_ = nullptr;};
 
     private:
         int x_, y_;
-        Path *path_;
+        Path* path_;
         CellType type_;
         bool walls_[4];
 };
@@ -81,9 +83,9 @@ class Field {
         Field(int w, int h, int start, int finish);
 
 
-        Cell& get_cell(int x, int y);
+        Cell &get_cell(int x, int y);
         bool trace_route();
-        Path& get_path(int index) {return pathes_[index];};
+        Path &get_path(int index) {return pathes_[index];};
     
     private:
         int w_, h_;
