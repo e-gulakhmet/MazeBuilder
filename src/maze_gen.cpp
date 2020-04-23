@@ -48,6 +48,9 @@ bool Field::trace_route() {
         std::cout << "Path could not be created.\n";
         return false;
     }
+    else {
+        pathes_.push_back(path);
+    }
 
     // Создать ветвление
     // Зачистить непривязанные ячейки
@@ -61,7 +64,15 @@ bool Path::create() {
     // Создаем путь
     // 1. Начинаем со стартовой ячейки, устанавливаем её первым элементом пути.
     Cell* curr = cells_[0];
+
+    // TODO: Указать ячейке, что она принадлежит пути.
+
     while (true) {
+
+        for (int wall = 0; wall <= 3; wall++)
+            std::cout << curr->walls(static_cast<Cell::CellDirection>(wall)) << " ";
+        std::cout << "\n";
+
         // 3. Проверяем все направления ячейки:
         //   1. Если направление указывает на ячейку, которая принадлежит пути, то ставим стену между ячейками и устанавливаем в обоих ячейках данное направление, как не доступное.
         // Проверяем верхнюю ячейку, получаем из field ячейку, у которой y текущей ячейки больше на 1
@@ -86,31 +97,39 @@ bool Path::create() {
             // TODO: Сделать возврат на предыдущую ячейку в пути
             cells_.pop_back();
         }
+        
 
         while (true) {
             // 4. Случайно выбираем направление следующего шага из доступных.
-            int dir = rand(); // TODO: Ограничить функцию rand от 0 до 3
+            int dir = rand() % 10 - 6; // TODO: Ограничить функцию rand от 0 до 3
+            while (dir < 0) {
+                dir = rand() % 10 - 6;
+            }
 
             // 5. Проверяем направление ячейки на доступность:
             //   1. Если направление доступно, указываем, то переходим к ячейке по выбранному направлению, указываем, что она принадлежит пути и повторяем шаг 3.3.
-            if (curr->walls(static_cast<Cell::CellDirection>(dir))) { 
-                switch (static_cast<Cell::CellDirection>(rand())) {
+            if (!(curr->walls(static_cast<Cell::CellDirection>(dir)))) {
+                switch (static_cast<Cell::CellDirection>(dir)) {
                     case Cell::cdTop:
+                        std::cout << "Go up\n";
                         curr = &(field_->get_cell(curr->x(), curr->y() + 1));
                         cells_.push_back(curr);
                         break;
 
                     case Cell::cdRight:
+                        std::cout << "Go right\n";
                         curr = &(field_->get_cell(curr->x() + 1, curr->y()));
                         cells_.push_back(curr);
                         break;
 
                     case Cell::cdBottom:
+                        std::cout << "Go bottom\n";
                         curr = &(field_->get_cell(curr->x(), curr->y() - 1));
                         cells_.push_back(curr);
                         break;
 
                     case Cell::cdLeft:
+                        std::cout << "Go left\n";
                         curr = &(field_->get_cell(curr->x() - 1, curr->y()));
                         cells_.push_back(curr);
                         break;             

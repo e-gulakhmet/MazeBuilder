@@ -24,7 +24,6 @@ int main(int, char**) {
     // Получаем случайное направление
     // Провераяем данное направление
 
-
     for (int y = 0; y < 6; y++) {
         for (int x = 0; x < 6; x++) {
             Cell cell = field.get_cell(x, y);
@@ -44,6 +43,20 @@ int main(int, char**) {
         }
         std::cout << '\n';
     }
+
+    field.trace_route();
+
+    for (int y = 0; y < 6; y++) {
+        for (int x = 0; x < 6; x++) {
+            Cell cell = field.get_cell(x, y);
+                if (cell.path() == &field.get_path(0))
+                    std::cout << "1";
+                else
+                    std::cout << "0";
+        }
+        std::cout << '\n';
+    }
+
 
     return 0;
 }

@@ -83,6 +83,7 @@ class Field {
 
         Cell& get_cell(int x, int y);
         bool trace_route();
+        Path& get_path(int index) {return pathes_[index];};
     
     private:
         int w_, h_;
