@@ -1,4 +1,5 @@
 #include <cassert>
+#include <algorithm>
 
 #include "maze_gen.h"
 
@@ -60,14 +61,35 @@ bool Field::trace_route() {
 
 
 
+int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
+    assert(x >= 0 && y >= 0 && x < w_ && y < h_);
+
+    // Получить путь, которому принадлежит ячейка
+    Path* path = cells_[y * w_ + x].path();
+    if (path == nullptr)
+        return -1;
+
+    return path->get_cell_id(&(cells_[y * w_ + x]));
+}
+
+
+
 bool Path::create() {
     int dir;
+    int deltas[4][2] = {
+        {0, -1},
+        {1, 0},
+        {0, 1},
+        {-1, 0}
+    };
+    std::vector<int> free_dirs;
     // Создаем путь
     // 1. Начинаем со стартовой ячейки, устанавливаем её первым элементом пути.
     Cell* curr = cells_[0];
     curr->set_path(this);
 
     while (true) {
+        free_dirs.clear();
         std::cout << "\n";
         std::cout << "walls_info: ";
         for (int wall = 0; wall <= 3; wall++) {
@@ -78,89 +100,50 @@ bool Path::create() {
         // 3. Проверяем все направления ячейки:
         //   1. Если направление указывает на ячейку, которая принадлежит пути, то ставим стену между ячейками и устанавливаем в обоих ячейках данное направление, как не доступное.
         // Проверяем верхнюю ячейку, получаем из field ячейку, у которой y текущей ячейки больше на 1
-        std::cout << "closing walls: ";
-        if (!curr->walls(Cell::cdTop) && field_->get_cell(curr->x(), curr->y() - 1).path() != nullptr) {
-            curr->set_wall(Cell::cdTop, true);
-            std::cout << "close_top_wall ";
+        for (int w = 0; w < 4; w++) {
+            Cell::CellDirection cell_dir = static_cast<Cell::CellDirection>(w);
+            if (curr->walls(cell_dir))
+                continue;
+
+            Cell& cell = field_->get_cell(curr->x() + deltas[w][0], curr->y() + deltas[w][1]);
+            if (cell.path() != nullptr) {
+                // Находим позицию текущей ячейки в векторе ячеек пути
+                auto self = std::find(cells_.begin(), cells_.end(), curr);
+                // Если мы не первая ячейка и проверяемая ячейка не является предудыщей, то ставим стенку
+                if (self != cells_.begin() && self - 1 != std::find(cells_.begin(), cells_.end(), &cell)) {
+                    curr->set_wall(cell_dir, true);
+                    std::cout << "close_wall: " << w << '\n';
+                }
+            }
+            else
+                free_dirs.push_back(w);
         }
-        // Проверяем правую ячейку, получаем из field ячейку, у которой x текущей ячейки больше на 1
-        if (!curr->walls(Cell::cdRight) && field_->get_cell(curr->x() + 1, curr->y()).path() != nullptr) {
-            curr->set_wall(Cell::cdRight, true);
-            std::cout << "close_right_wall ";
-        }
-        // Проверяем нужнюю ячейку, получаем из field ячейку, у которой y текущей ячейки меньше на 1
-        if (!curr->walls(Cell::cdBottom) && field_->get_cell(curr->x(), curr->y() + 1).path() != nullptr) {
-            curr->set_wall(Cell::cdBottom, true);
-            std::cout << "close_bottom_wall ";
-        }
-        // Проверяем левую ячейку, получаем из field ячейку, у которой x текущей ячейки меньше на 1
-        if (!curr->walls(Cell::cdLeft) && field_->get_cell(curr->x() - 1, curr->y()).path() != nullptr) {
-            curr->set_wall(Cell::cdLeft, true);
-            std::cout << "close_left_wall";
-        }
-        std::cout << "\n";
 
         //   2. Если достигнута ячейка выхода, завершаем построение пути.
         if (curr->type() == Cell::ctFinish)
             break; 
 
         //   3. Если нет доступных направлений, то убираем у ячейки принадлежность к пути, возвращаемся на предыдущую ячейку и указываем данное направление как не доступное.
-        if (curr->walls(Cell::cdTop) && curr->walls(Cell::cdRight) && curr->walls(Cell::cdBottom) && curr->walls(Cell::cdLeft)) {
+        if (0 == free_dirs.size()) {
             cells_.pop_back();
             curr->remove_path();
-            // TODO: Поставить стену между ячейками
             curr = cells_.back();
             curr->set_wall(static_cast<Cell::CellDirection>(dir), true);
             continue;
         }
 
-        while (true) {
-            // 4. Случайно выбираем направление следующего шага из доступных.
-            dir = rand() % 10 - 6; // TODO: Ограничить функцию rand от 0 до 3
-            while (dir < 0) {
-                dir = rand() % 10 - 6;
-            }
-            std::cout << "random_direction: " << dir << ", state: " << (curr->walls(static_cast<Cell::CellDirection>(dir)) ? "close" : "open") << "\n";
 
-            // 5. Проверяем направление ячейки на доступность:
-            //   1. Если направление доступно, указываем, то переходим к ячейке по выбранному направлению, указываем, что она принадлежит пути и повторяем шаг 3.3.
-            std::cout << "sellecting_new_cell: ";
-            if (!(curr->walls(static_cast<Cell::CellDirection>(dir)))) {
-                switch (static_cast<Cell::CellDirection>(dir)) {
-                    case Cell::cdTop:
-                        std::cout << "up\n";
-                        curr = &(field_->get_cell(curr->x(), curr->y() - 1));
-                        cells_.push_back(curr);
-                        curr->set_path(this);
-                        break;
+        // 4. Случайно выбираем направление следующего шага из доступных.
+        std::cout << "sellecting_new_cell: ";
+        dir = free_dirs[rand() % free_dirs.size()];
+        std::cout << dir << '\n';
+        curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
+        curr->set_path(this);
+        cells_.push_back(curr);
 
-                    case Cell::cdRight:
-                        std::cout << "right\n";
-                        curr = &(field_->get_cell(curr->x() + 1, curr->y()));
-                        cells_.push_back(curr);
-                        curr->set_path(this);
-                        break;
+        std::cout << "\n";
 
-                    case Cell::cdBottom:
-                        std::cout << "bottom\n";
-                        curr = &(field_->get_cell(curr->x(), curr->y() + 1));
-                        cells_.push_back(curr);
-                        curr->set_path(this);
-                        break;
-
-                    case Cell::cdLeft:
-                        std::cout << "left\n";
-                        curr = &(field_->get_cell(curr->x() - 1, curr->y()));
-                        cells_.push_back(curr);
-                        curr->set_path(this);
-                        break;             
-                }
-                std::cout << "\n";
-                break;
-            }
-            std::cout << "\n";
-            //   2. Иначе переходим к 3.4 шагу.
-        }
+        //   2. Иначе переходим к 3.4 шагу.
     }
 
 
@@ -168,3 +151,16 @@ bool Path::create() {
 }
 
 
+
+int Path::get_cell_id(Cell* cell) {
+    // Получаем итератор ячейки в пути
+    auto cpos = std::find(cells_.begin(), cells_.end(), cell);
+    // Если ячейка не найдена
+    if (cpos == cells_.end()) {
+        std::cout << "cell not found\n";
+        return -1;
+    }
+    
+    // Возвращаем разность между началом списка ячеек и интератором ячейки в пути
+    return std::distance(cells_.begin(), cpos);
+}

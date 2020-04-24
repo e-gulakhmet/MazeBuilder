@@ -69,6 +69,7 @@ class Path {
         };
 
         bool create();
+        int get_cell_id(Cell* cell);
 
     private:
         Field *field_;
@@ -86,6 +87,7 @@ class Field {
         Cell &get_cell(int x, int y);
         bool trace_route();
         Path &get_path(int index) {return pathes_[index];};
+        int get_cell_pos(int x, int y);
     
     private:
         int w_, h_;
