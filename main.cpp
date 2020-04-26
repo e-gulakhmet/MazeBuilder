@@ -8,7 +8,7 @@ int main(int, char**) {
     Field field(8, 8, 3, 2);
 
     // Инициализация генератора случайных чисел
-    std::srand(10);
+    std::srand(0);
 
     field.trace_route();
 
@@ -18,7 +18,7 @@ int main(int, char**) {
             switch (cell.type()) {
                 case Cell::ctNormal: 
                     if (cell.path() != nullptr) // TODO: Измить условие, чтобы бьла возможность определять к какому пути принадлежит ячейка
-                        std::cout << field.get_cell_pos(x, y) % 10 << ' ';
+                        std::cout << "1 ";
                     else
                         std::cout << "N ";
                     break;

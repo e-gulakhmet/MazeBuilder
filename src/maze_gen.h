@@ -69,6 +69,7 @@ class Path {
         };
 
         bool create();
+        bool create_fork();
         int get_cell_id(Cell* cell);
 
     private:
@@ -86,8 +87,9 @@ class Field {
 
         Cell &get_cell(int x, int y);
         bool trace_route();
-        Path &get_path(int index) {return pathes_[index];};
         int get_cell_pos(int x, int y);
+        void add_path(Path path) {pathes_.push_back(path);};
+        Path& get_path(int index) {return pathes_[index];};
     
     private:
         int w_, h_;
