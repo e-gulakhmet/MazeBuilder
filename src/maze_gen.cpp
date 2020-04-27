@@ -172,12 +172,14 @@ bool Path::create_fork() {
     std::vector<Cell*> free_cells;
     std::vector<Path> forks;
     std::vector<int> free_dirs;
+    std::vector<ForkStart> fork_starts;
     int deltas[4][2] = {
         {0, -1},
         {1, 0},
         {0, 1},
         {-1, 0}
     };
+
     // 1. Выбираем все ячейки пути из которых можно создать ветвление. Если таких ячеек не осталось, то переходим пп. 5.
     // Проходимся по всем ячейкам пути
     for (int i = 0; i < cells_.size(); i++) {
@@ -207,6 +209,8 @@ bool Path::create_fork() {
             // Если нашли доступное направление, то сдвигаемся на ячейку по этому направлению и создаем ветвление со стартом в этой ячейке,
             if (next_cell->path() == nullptr) {
                 Path fork(field_, Path::ptFork, next_cell);
+                // Связываем ячейку пути, с которого стартовало ветвление с самим ветвлением
+                fork_starts.push_back(ForkStart(path_cell, &fork));
                 // добавляем его в список путей доступных для ветвления,
                 forks.push_back(fork);
                 // указываем ячейке, что она принадлежит данному ветвлению
@@ -217,11 +221,9 @@ bool Path::create_fork() {
     }
 
     // 3. Параллельно идем по каждому из новых ветвлений до тех пор пока список новых ветвлений не пуст:
-    int cell_index = 0;
     while (forks.size() > 0) {
-        for (int p = 0; p < forks.size(); p++) {
-            Cell* curr = forks[p].cells_[cell_index];
-            forks[p].cells_.push_back(curr);
+        for (int p = forks.size() - 1; p >= 0; p--) {
+            Cell* curr = forks[p].cells_.back();
             free_dirs.clear();
             
             // Проверяем все направления ячейки:
@@ -237,10 +239,12 @@ bool Path::create_fork() {
                     // Находим позицию текущей ячейки в векторе ячеек пути
                     auto self = std::find(forks[p].cells_.begin(), forks[p].cells_.end(), curr);
                     // Если мы не первая ячейка и проверяемая ячейка не является предудыщей, то ставим стенку
-                    if (self != forks[p].cells_.begin() && self - 1 != std::find(forks[p].cells_.begin(), forks[p].cells_.end(), &cell)) {
+                    // if (self != forks[p].cells_.begin() && self - 1 != std::find(forks[p].cells_.begin(), forks[p].cells_.end(), &cell) && 
+                    //     std::find_if(fork_starts.begin(), fork_starts.end(), [&frk = forks[p], &cl = cell](ForkStart& p)->bool {return p.first == &cl && p.second == &frk;}) == fork_starts.end())
+                    if ((self != forks[p].cells_.begin() && self - 1 != std::find(forks[p].cells_.begin(), forks[p].cells_.end(), &cell))
+                        && (self == forks[p].cells_.begin()
+                            && std::find_if(fork_starts.begin(), fork_starts.end(), [&frk = forks[p], &cl = cell](ForkStart& p)->bool {return p.first == &cl && p.second == &frk;}) == fork_starts.end()))
                         curr->set_wall(cell_dir, true);
-                        std::cout << "close_wall: " << w << '\n';
-                    }
                 }
                 else
                     free_dirs.push_back(w);
@@ -249,7 +253,7 @@ bool Path::create_fork() {
             //   2. Если нет доступных направлений, то убираем у ячейки принадлежность к пути, возвращаемся на предыдущую ячейку и указываем данное направление как не доступное.
             if (0 == free_dirs.size()) {           
                 field_->add_path(forks[p]);
-                // TODO: Удалить ветвление из списка доступных ветвлений
+                forks.erase(forks.begin() + p);
                 continue;
             }
 
@@ -258,10 +262,9 @@ bool Path::create_fork() {
             //     то завершаем создание ветвления и удаляем его из списка новых ветвлений.
             int dir = free_dirs[rand() % free_dirs.size()];
             curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
-            curr->set_path(this);
+            curr->set_path(&forks[p]);
             forks[p].cells_.push_back(curr);
         }
-        cell_index++;
     }
 
     return true;

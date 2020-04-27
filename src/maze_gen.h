@@ -76,6 +76,7 @@ class Path {
         Field *field_;
         PathType type_;
         std::vector<Cell*> cells_;
+        typedef std::pair<Cell*, Path*> ForkStart;
 };
 
 
