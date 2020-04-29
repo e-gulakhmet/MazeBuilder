@@ -1,5 +1,6 @@
 #include <cassert>
 #include <algorithm>
+#include <sstream>
 
 #include "maze_gen.h"
 
@@ -54,12 +55,63 @@ bool Field::trace_route() {
     }
 
     // Создать ветвление
-    path.create_fork();
+    // path.create_fork();
     // Зачистить непривязанные ячейки
 
     return true;
 }
 
+
+
+Field::operator std::string() {
+    std::ostringstream ss;
+
+    ss << w_ << " " << h_ << "\n";
+
+    for (int y = 0; y < h_; y++) {
+        for (int x = 0; x < w_; x++) {
+            Cell& cell = cells_[y * w_ + x];
+            switch (cell.type()) {
+                case Cell::ctNormal:
+                    if (cell.path() != nullptr)
+                        // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
+                        ss << get_cell_pos(x, y) % 10 << ' ';
+                    else
+                        ss << "N ";
+                    break;
+                
+                case Cell::ctStart:
+                    ss << "S ";
+                    break;
+                
+                case Cell::ctFinish:
+                    ss << "F ";
+                    break;
+            }
+        }
+        ss << "\n";
+    }
+
+    for (auto p: pathes_)
+        ss << std::string(p) << "\n";
+
+    return ss.str();
+}
+
+
+
+
+Path::operator std::string() {
+    std::ostringstream ss;
+
+    for (auto c: cells_) {
+        ss << get_cell_id(c) << " ";
+        // ss << std::distance(cells_.begin(), std::find(cells_.begin(), cells_.end(), c)) << " ";
+        ss << (void*)(c->path()) << ' ' << c->x() << ' ' << c->y() << '\n';
+    }
+
+    return ss.str();
+}
 
 
 int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
@@ -87,7 +139,6 @@ bool Path::create() {
     // Создаем путь
     // 1. Начинаем со стартовой ячейки, устанавливаем её первым элементом пути.
     Cell* curr = cells_[0];
-    curr->set_path(this);
 
     while (true) {
         free_dirs.clear();
@@ -126,8 +177,7 @@ bool Path::create() {
 
         //   3. Если нет доступных направлений, то убираем у ячейки принадлежность к пути, возвращаемся на предыдущую ячейку и указываем данное направление как не доступное.
         if (0 == free_dirs.size()) {
-            cells_.pop_back();
-            curr->remove_path();
+            unbind(curr);
             curr = cells_.back();
             curr->set_wall(static_cast<Cell::CellDirection>(dir), true);
             continue;
@@ -139,8 +189,7 @@ bool Path::create() {
         dir = free_dirs[rand() % free_dirs.size()];
         std::cout << dir << '\n';
         curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
-        curr->set_path(this);
-        cells_.push_back(curr);
+        bind(curr);
 
         std::cout << "\n";
 
@@ -213,8 +262,6 @@ bool Path::create_fork() {
                 fork_starts.push_back(ForkStart(path_cell, &fork));
                 // добавляем его в список путей доступных для ветвления,
                 forks.push_back(fork);
-                // указываем ячейке, что она принадлежит данному ветвлению
-                next_cell->set_path(&fork);
                 break;                
             }           
         }
@@ -250,7 +297,7 @@ bool Path::create_fork() {
                     free_dirs.push_back(w);
             }
 
-            //   2. Если нет доступных направлений, то убираем у ячейки принадлежность к пути, возвращаемся на предыдущую ячейку и указываем данное направление как не доступное.
+            //   2. Если нет доступных направлений, то добавляем данное вентвление в список путей и удаляем ветвление из списка доступных вентвлений.
             if (0 == free_dirs.size()) {           
                 field_->add_path(forks[p]);
                 forks.erase(forks.begin() + p);
@@ -262,10 +309,28 @@ bool Path::create_fork() {
             //     то завершаем создание ветвления и удаляем его из списка новых ветвлений.
             int dir = free_dirs[rand() % free_dirs.size()];
             curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
-            curr->set_path(&forks[p]);
-            forks[p].cells_.push_back(curr);
+            forks[p].bind(curr);
         }
     }
 
     return true;
+}
+
+
+
+void Path::bind(Cell* cell) {
+    assert(std::find(cells_.begin(), cells_.end(), cell) == cells_.end());
+
+    cells_.push_back(cell);
+    cell->set_path(this);
+}
+
+
+
+void Path::unbind(Cell* cell) {
+    auto c = std::find(cells_.begin(), cells_.end(), cell);
+    assert(c != cells_.end());
+
+    cells_.erase(c);
+    cell->set_path();
 }

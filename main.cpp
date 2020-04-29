@@ -12,28 +12,31 @@ int main(int, char**) {
 
     field.trace_route();
 
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            Cell cell = field.get_cell(x, y);
-            switch (cell.type()) {
-                case Cell::ctNormal: 
-                    if (cell.path() != nullptr) // TODO: Измить условие, чтобы бьла возможность определять к какому пути принадлежит ячейка
-                        std::cout << field.get_cell_pos(x, y);
-                    else
-                        std::cout << "N ";
-                    break;
+    std::cout << std::string(field);
 
-                case Cell::ctStart: 
-                    std::cout << "S ";
-                    break;
 
-                case Cell::ctFinish: 
-                    std::cout << "F ";
-                    break;
-            }
-        }
-        std::cout << '\n';
-    }
+    // for (int y = 0; y < 8; y++) {
+    //     for (int x = 0; x < 8; x++) {
+    //         Cell& cell = field.get_cell(x, y);
+    //         switch (cell.type()) {
+    //             case Cell::ctNormal: 
+    //                 if (cell.path() != nullptr) // TODO: Измить условие, чтобы бьла возможность определять к какому пути принадлежит ячейка
+    //                     std::cout << field.get_cell_pos(x, y) << ' ';
+    //                 else
+    //                     std::cout << "N ";
+    //                 break;
+
+    //             case Cell::ctStart: 
+    //                 std::cout << "S ";
+    //                 break;
+
+    //             case Cell::ctFinish: 
+    //                 std::cout << "F ";
+    //                 break;
+    //         }
+    //     }
+    //     std::cout << '\n';
+    // }
 
     return 0;
 }

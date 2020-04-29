@@ -34,14 +34,13 @@ class Cell {
                 walls_[i] = walls[i];
         };
 
-        CellType type() {return type_;};
+        CellType type() const {return type_;};
         bool walls(CellDirection dir) {return walls_[dir];}
         int x() {return x_;};
         int y() {return y_;};
         Path* path() {return path_;};
         void set_wall(CellDirection dir, bool state) {walls_[dir] = state;};
-        void set_path(Path* path) {path_ = path;};
-        void remove_path() {path_ = nullptr;};
+        void set_path(Path* path=nullptr) {path_ = path;};
 
     private:
         int x_, y_;
@@ -65,12 +64,16 @@ class Path {
             : field_(field)
             , type_(type)
         {
-            cells_.push_back(first);
+            bind(first);
         };
 
         bool create();
         bool create_fork();
         int get_cell_id(Cell* cell);
+        void bind(Cell* cell);
+        void unbind(Cell* cell);
+        
+        operator std::string();
 
     private:
         Field *field_;
@@ -91,6 +94,8 @@ class Field {
         int get_cell_pos(int x, int y);
         void add_path(Path path) {pathes_.push_back(path);};
         Path& get_path(int index) {return pathes_[index];};
+
+        operator std::string();
     
     private:
         int w_, h_;
