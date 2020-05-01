@@ -94,6 +94,7 @@ class Field {
         int get_cell_pos(int x, int y);
         void add_path(Path path) {pathes_.push_back(path);};
         Path& get_path(int index) {return pathes_[index];};
+        void clear();
 
         operator std::string();
     

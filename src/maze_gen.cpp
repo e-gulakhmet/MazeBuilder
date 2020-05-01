@@ -55,8 +55,10 @@ bool Field::trace_route() {
     }
 
     // Создать ветвление
-    // path.create_fork();
+    path.create_fork();
+    
     // Зачистить непривязанные ячейки
+    clear();
 
     return true;
 }
@@ -75,7 +77,8 @@ Field::operator std::string() {
                 case Cell::ctNormal:
                     if (cell.path() != nullptr)
                         // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
-                        ss << get_cell_pos(x, y) % 10 << ' ';
+                        // ss << get_cell_pos(x, y) % 10 << ' ';
+                        ss << "1 ";
                     else
                         ss << "N ";
                     break;
@@ -96,6 +99,22 @@ Field::operator std::string() {
         ss << std::string(p) << "\n";
 
     return ss.str();
+}
+
+
+
+void Field::clear() {
+    for (int y = 0; y < h_; y++)
+        for (int x = 0; x < w_; x++) {
+            Cell& cell = get_cell(x, y);
+
+            if (cell.path() == nullptr) {
+                cell.set_wall(Cell::cdTop, true);
+                cell.set_wall(Cell::cdRight, true);
+                cell.set_wall(Cell::cdBottom, true);
+                cell.set_wall(Cell::cdLeft, true);
+            }
+        }
 }
 
 
