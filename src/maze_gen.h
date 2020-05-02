@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <vector>
-
+#include <cassert>
 
 class Path;
 
@@ -60,11 +60,42 @@ class Path {
             ptFork,
         } PathType;
 
+        // Конструктор по-умолчанию
+        Path() = delete;
+
         Path(Field *field, PathType type, Cell *first)
             : field_(field)
             , type_(type)
         {
+            assert(field_ != nullptr);
+
             bind(first);
+        };
+
+        // Копирующий конструктор
+        Path(const Path& other) 
+            : field_(other.field_)
+            , type_(other.type_)
+        {
+            std::copy(other.cells_.begin(), other.cells_.end(), cells_.begin());
+        }
+
+        // конструктор переноса
+        Path(Path&& other) 
+            : field_(other.field_)
+            , type_(other.type_)
+        {
+            for (auto c : other.cells_)
+                cells_.push_back(c);
+        };
+
+        Path& operator=(const Path& other) {
+            field_ = other.field_;
+            type_ = other.type_;
+            cells_.clear();
+            std::copy(other.cells_.begin(), other.cells_.end(), cells_.begin());
+
+            return *this;
         };
 
         bool create();
@@ -92,7 +123,11 @@ class Field {
         Cell &get_cell(int x, int y);
         bool trace_route();
         int get_cell_pos(int x, int y);
-        void add_path(Path path) {pathes_.push_back(path);};
+        void add_path(Path& path) {
+            std::cout << "Trying to add the new path\n";
+            pathes_.push_back(std::move(path));
+            std::cout << "New path added\n";
+        };
         Path& get_path(int index) {return pathes_[index];};
         void clear();
 

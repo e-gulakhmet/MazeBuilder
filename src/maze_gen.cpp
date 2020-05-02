@@ -51,14 +51,15 @@ bool Field::trace_route() {
         return false;
     }
     else {
-        pathes_.push_back(path);
+        std::cout << "Adding new path\n";
+        add_path(path);
     }
 
     // Создать ветвление
-    path.create_fork();
+    // path.create_fork();
     
     // Зачистить непривязанные ячейки
-    clear();
+    // clear();
 
     return true;
 }
@@ -76,9 +77,9 @@ Field::operator std::string() {
             switch (cell.type()) {
                 case Cell::ctNormal:
                     if (cell.path() != nullptr)
-                        // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
+                        ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
                         // ss << get_cell_pos(x, y) % 10 << ' ';
-                        ss << "1 ";
+                        // ss << "1 ";
                     else
                         ss << "N ";
                     break;
@@ -125,7 +126,6 @@ Path::operator std::string() {
 
     for (auto c: cells_) {
         ss << get_cell_id(c) << " ";
-        // ss << std::distance(cells_.begin(), std::find(cells_.begin(), cells_.end(), c)) << " ";
         ss << (void*)(c->path()) << ' ' << c->x() << ' ' << c->y() << '\n';
     }
 
@@ -136,12 +136,13 @@ Path::operator std::string() {
 int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
     assert(x >= 0 && y >= 0 && x < w_ && y < h_);
 
+    Cell& cell = cells_[y * w_ + x];
     // Получить путь, которому принадлежит ячейка
-    Path* path = cells_[y * w_ + x].path();
+    Path* path = cell.path();
     if (path == nullptr)
         return -1;
 
-    return path->get_cell_id(&(cells_[y * w_ + x]));
+    return path->get_cell_id(&cell);
 }
 
 
@@ -339,6 +340,7 @@ bool Path::create_fork() {
 
 void Path::bind(Cell* cell) {
     assert(std::find(cells_.begin(), cells_.end(), cell) == cells_.end());
+    assert(cell != nullptr);
 
     cells_.push_back(cell);
     cell->set_path(this);
