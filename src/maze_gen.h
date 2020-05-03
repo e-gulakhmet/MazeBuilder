@@ -8,7 +8,6 @@
 class Path;
 
 
-
 class Cell {
     public:
         typedef enum {
@@ -50,7 +49,6 @@ class Cell {
 };
 
 
-
 class Field;
 
 class Path {
@@ -60,7 +58,7 @@ class Path {
             ptFork,
         } PathType;
 
-        // Конструктор по-умолчанию
+        // Удаляем конструктор по-умолчанию
         Path() = delete;
 
         Path(Field *field, PathType type, Cell *first)
@@ -80,13 +78,14 @@ class Path {
             std::copy(other.cells_.begin(), other.cells_.end(), cells_.begin());
         }
 
-        // конструктор переноса
-        Path(Path&& other) 
+        // Конструктор переноса
+        Path(Path&& other) noexcept
             : field_(other.field_)
             , type_(other.type_)
+            , cells_(std::move(other.cells_))
         {
-            for (auto c : other.cells_)
-                cells_.push_back(c);
+            for (Cell* c : cells_ )
+                c->set_path(this);
         };
 
         Path& operator=(const Path& other) {
@@ -97,6 +96,10 @@ class Path {
 
             return *this;
         };
+
+        // ~Path() {
+        //     cells_.clear();
+        // };
 
         bool create();
         bool create_fork();
@@ -114,19 +117,15 @@ class Path {
 };
 
 
-
 class Field {
     public:
         Field(int w, int h, int start, int finish);
-
 
         Cell &get_cell(int x, int y);
         bool trace_route();
         int get_cell_pos(int x, int y);
         void add_path(Path& path) {
-            std::cout << "Trying to add the new path\n";
             pathes_.push_back(std::move(path));
-            std::cout << "New path added\n";
         };
         Path& get_path(int index) {return pathes_[index];};
         void clear();
@@ -144,7 +143,6 @@ class Field {
 
         bool create_path();
 };
-
 
 
 #endif // _MAZE_GEN_H_

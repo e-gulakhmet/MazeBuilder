@@ -5,7 +5,6 @@
 #include "maze_gen.h"
 
 
-
 Field::Field(int w, int h, int start, int finish)
     : w_(w)
     , h_(h)
@@ -33,8 +32,6 @@ Field::Field(int w, int h, int start, int finish)
 }
 
 
-
-
 Cell& Field::get_cell(int x, int y) {
     assert(x >= 0 && y >= 0 && x < w_ && y < h_);
 
@@ -42,8 +39,8 @@ Cell& Field::get_cell(int x, int y) {
 }
 
 
-
 bool Field::trace_route() {
+
     // Создать путь
     Path path(this, Path::ptMain, &get_cell(0, start_));
     if (!path.create()) {
@@ -51,7 +48,7 @@ bool Field::trace_route() {
         return false;
     }
     else {
-        std::cout << "Adding new path\n";
+        std::cout << "Path sucessfully created.\n";
         add_path(path);
     }
 
@@ -65,7 +62,6 @@ bool Field::trace_route() {
 }
 
 
-
 Field::operator std::string() {
     std::ostringstream ss;
 
@@ -77,9 +73,9 @@ Field::operator std::string() {
             switch (cell.type()) {
                 case Cell::ctNormal:
                     if (cell.path() != nullptr)
-                        ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
-                        // ss << get_cell_pos(x, y) % 10 << ' ';
-                        // ss << "1 ";
+                        // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
+                        ss << get_cell_pos(x, y) % 10 << ' ';
+                        // ss << "* ";
                     else
                         ss << "N ";
                     break;
@@ -96,12 +92,11 @@ Field::operator std::string() {
         ss << "\n";
     }
 
-    for (auto p: pathes_)
-        ss << std::string(p) << "\n";
+    // for (auto p: pathes_)
+    //     ss << std::string(p) << "\n";
 
     return ss.str();
 }
-
 
 
 void Field::clear() {
@@ -117,8 +112,6 @@ void Field::clear() {
             }
         }
 }
-
-
 
 
 Path::operator std::string() {
@@ -146,7 +139,6 @@ int Field::get_cell_pos(int x, int y) { // Получение позиции в 
 }
 
 
-
 bool Path::create() {
     int dir;
     int deltas[4][2] = {
@@ -168,7 +160,11 @@ bool Path::create() {
             std::cout << curr->walls(static_cast<Cell::CellDirection>(wall)) << " ";
         }
         std::cout << "\n";
-        
+
+        //   2. Если достигнута ячейка выхода, завершаем построение пути.
+        if (curr->type() == Cell::ctFinish)
+            break; 
+
         // 3. Проверяем все направления ячейки:
         //   1. Если направление указывает на ячейку, которая принадлежит пути, то ставим стену между ячейками и устанавливаем в обоих ячейках данное направление, как не доступное.
         // Проверяем верхнюю ячейку, получаем из field ячейку, у которой y текущей ячейки больше на 1
@@ -191,10 +187,6 @@ bool Path::create() {
                 free_dirs.push_back(w);
         }
 
-        //   2. Если достигнута ячейка выхода, завершаем построение пути.
-        if (curr->type() == Cell::ctFinish)
-            break; 
-
         //   3. Если нет доступных направлений, то убираем у ячейки принадлежность к пути, возвращаемся на предыдущую ячейку и указываем данное направление как не доступное.
         if (0 == free_dirs.size()) {
             unbind(curr);
@@ -202,7 +194,6 @@ bool Path::create() {
             curr->set_wall(static_cast<Cell::CellDirection>(dir), true);
             continue;
         }
-
 
         // 4. Случайно выбираем направление следующего шага из доступных.
         std::cout << "sellecting_new_cell: ";
@@ -216,10 +207,8 @@ bool Path::create() {
         //   2. Иначе переходим к 3.4 шагу.
     }
 
-
     return true;
 }
-
 
 
 int Path::get_cell_id(Cell* cell) {
@@ -234,7 +223,6 @@ int Path::get_cell_id(Cell* cell) {
     // Возвращаем разность между началом списка ячеек и интератором ячейки в пути
     return std::distance(cells_.begin(), cpos);
 }
-
 
 
 bool Path::create_fork() {
@@ -337,7 +325,6 @@ bool Path::create_fork() {
 }
 
 
-
 void Path::bind(Cell* cell) {
     assert(std::find(cells_.begin(), cells_.end(), cell) == cells_.end());
     assert(cell != nullptr);
@@ -345,7 +332,6 @@ void Path::bind(Cell* cell) {
     cells_.push_back(cell);
     cell->set_path(this);
 }
-
 
 
 void Path::unbind(Cell* cell) {

@@ -12,6 +12,8 @@ int main(int, char**) {
 
     field.trace_route();
 
+    std::cout << "Routes created.\n";
+
     std::cout << std::string(field);
 
 
