@@ -71,12 +71,13 @@ class Path {
         };
 
         // Копирующий конструктор
+        // Нельзя создать копию пути. Ячейка может принадлежить
+        // только одному пути, поэтому копия не имеет связанных
+        // с ней ячеек.
         Path(const Path& other) 
             : field_(other.field_)
-            , type_(other.type_)
-        {
-            std::copy(other.cells_.begin(), other.cells_.end(), cells_.begin());
-        }
+            , type_(other.type_) 
+        {};
 
         // Конструктор переноса
         Path(Path&& other) noexcept
@@ -88,18 +89,15 @@ class Path {
                 c->set_path(this);
         };
 
+        // Присваивание также создает путь, не имеющий принадлежащих 
+        // ему ячеек.
         Path& operator=(const Path& other) {
             field_ = other.field_;
             type_ = other.type_;
             cells_.clear();
-            std::copy(other.cells_.begin(), other.cells_.end(), cells_.begin());
 
             return *this;
         };
-
-        // ~Path() {
-        //     cells_.clear();
-        // };
 
         bool create();
         bool create_fork();

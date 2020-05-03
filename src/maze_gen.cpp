@@ -62,6 +62,34 @@ bool Field::trace_route() {
 }
 
 
+void Field::clear() {
+    for (int y = 0; y < h_; y++)
+        for (int x = 0; x < w_; x++) {
+            Cell& cell = get_cell(x, y);
+
+            if (cell.path() == nullptr) {
+                cell.set_wall(Cell::cdTop, true);
+                cell.set_wall(Cell::cdRight, true);
+                cell.set_wall(Cell::cdBottom, true);
+                cell.set_wall(Cell::cdLeft, true);
+            }
+        }
+}
+
+
+int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
+    assert(x >= 0 && y >= 0 && x < w_ && y < h_);
+
+    Cell& cell = cells_[y * w_ + x];
+    // Получить путь, которому принадлежит ячейка
+    Path* path = cell.path();
+    if (path == nullptr)
+        return -1;
+
+    return path->get_cell_id(&cell);
+}
+
+
 Field::operator std::string() {
     std::ostringstream ss;
 
@@ -92,50 +120,10 @@ Field::operator std::string() {
         ss << "\n";
     }
 
-    // for (auto p: pathes_)
-    //     ss << std::string(p) << "\n";
+    for (auto& p: pathes_)
+        ss << std::string(p) << "\n";
 
     return ss.str();
-}
-
-
-void Field::clear() {
-    for (int y = 0; y < h_; y++)
-        for (int x = 0; x < w_; x++) {
-            Cell& cell = get_cell(x, y);
-
-            if (cell.path() == nullptr) {
-                cell.set_wall(Cell::cdTop, true);
-                cell.set_wall(Cell::cdRight, true);
-                cell.set_wall(Cell::cdBottom, true);
-                cell.set_wall(Cell::cdLeft, true);
-            }
-        }
-}
-
-
-Path::operator std::string() {
-    std::ostringstream ss;
-
-    for (auto c: cells_) {
-        ss << get_cell_id(c) << " ";
-        ss << (void*)(c->path()) << ' ' << c->x() << ' ' << c->y() << '\n';
-    }
-
-    return ss.str();
-}
-
-
-int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
-    assert(x >= 0 && y >= 0 && x < w_ && y < h_);
-
-    Cell& cell = cells_[y * w_ + x];
-    // Получить путь, которому принадлежит ячейка
-    Path* path = cell.path();
-    if (path == nullptr)
-        return -1;
-
-    return path->get_cell_id(&cell);
 }
 
 
@@ -340,4 +328,16 @@ void Path::unbind(Cell* cell) {
 
     cells_.erase(c);
     cell->set_path();
+}
+
+
+Path::operator std::string() {
+    std::ostringstream ss;
+
+    for (int i=0; i<cells_.size(); i++) {
+        ss << i << " @ (";
+        ss << cells_[i]->x() << ',' << cells_[i]->y() << ")\n";
+    }
+
+    return ss.str();
 }
