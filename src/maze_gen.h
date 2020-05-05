@@ -99,20 +99,42 @@ class Path {
             return *this;
         };
 
-        bool create();
+        virtual bool create();
         bool create_fork();
         int get_cell_id(Cell* cell);
         void bind(Cell* cell);
         void unbind(Cell* cell);
+        Cell* get_cell(int index) {return cells_[index];};
         
         operator std::string();
 
-    private:
+    protected:
         Field *field_;
         PathType type_;
         std::vector<Cell*> cells_;
-        typedef std::pair<Cell*, Path*> ForkStart;
 };
+
+
+
+class Fork: public Path{
+    public:
+        // Первая ячейка - ячейка пути от которой пошло ветвление, второая - первая ячейка ветвления
+        Fork(Field *field, PathType type, std::pair<Cell*, Cell*> start)
+        : Path(field, type, start.first)
+        , path_cell_(start.first)
+        {
+            cells_.push_back(start.second);
+        }
+
+        typedef std::pair<Cell*, Cell*> ForkPair;
+
+        bool create();
+    
+    private:
+        Cell* path_cell_;
+
+};
+
 
 
 class Field {
@@ -122,10 +144,11 @@ class Field {
         Cell &get_cell(int x, int y);
         bool trace_route();
         int get_cell_pos(int x, int y);
-        void add_path(Path& path) {
-            pathes_.push_back(std::move(path));
+        void set_path(Path& path) {
+            path_ = path;
         };
-        Path& get_path(int index) {return pathes_[index];};
+        
+        Path& get_path(int index) {return path_;};
         void clear();
 
         operator std::string();
@@ -137,7 +160,8 @@ class Field {
         int start_, finish_; 
         
         std::vector<Cell> cells_;
-        std::vector<Path> pathes_;
+        Path path_;
+        std::vector<Fork> forks_;
 
         bool create_path();
 };
