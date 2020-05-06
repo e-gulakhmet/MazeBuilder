@@ -10,6 +10,7 @@ Field::Field(int w, int h, int start, int finish)
     , h_(h)
     , start_(start)
     , finish_(finish)
+    , path_(nullptr, Path::ptMain, nullptr)
 {
     bool walls[4];
     for (int y = 0; y < h_; y++)
@@ -29,6 +30,8 @@ Field::Field(int w, int h, int start, int finish)
             Cell cell(x, y, c_type, walls);
             cells_.push_back(cell);
         }
+
+    path_ = std::move(Path(this, Path::ptMain, &cells_[w_ * start]));
 }
 
 
@@ -40,19 +43,16 @@ Cell& Field::get_cell(int x, int y) {
 
 
 bool Field::trace_route() {
-
     // Создать путь
-    Path path(this, Path::ptMain, &get_cell(0, start_));
-    if (!path.create()) {
+    if (!path_.create()) {
         std::cout << "Path could not be created.\n";
         return false;
     }
     else {
         std::cout << "Path sucessfully created.\n";
-        set_path(path);
     }
 
-    // Создать ветвление
+    // Создать ветвления
     std::vector<Cell*> free_cells;
     int deltas[4][2] = {
         {0, -1},
@@ -61,10 +61,10 @@ bool Field::trace_route() {
         {-1, 0}
     };
 
-    // 1. Выбираем все ячейки пути из которых можно создать ветвление. Если таких ячеек не осталось, то переходим пп. 5.
+    // 1. Выбираем все ячейки пути из которых можно создать ветвление.
     // Проходимся по всем ячейкам пути
-    for (int i = 0; i < cells_.size(); i++) {
-        Cell* cell = path.get_cell(i);
+    for (int i = 0; i < path_.get_cells_size(); i++) {
+        Cell* cell = path_.get_cell(i);
         // Проходимся по каждой стороне ячейки
         for (int w = 0; w < 4; w++) {
             // Если стенка то переходим к следующей стороне
@@ -92,17 +92,20 @@ bool Field::trace_route() {
                 // Связываем ячейку пути, с которого стартовало ветвление с самим ветвлением
                 Fork fork(this, Path::ptFork, Fork::ForkPair(path_cell, next_cell));
                 // добавляем его в список путей доступных для ветвления,
-                forks_.push_back(fork);
+                forks_.push_back(std::move(fork));
                 break;                
             }
         }
     }
 
     int forks_count = forks_.size();
+    // Пока количесво доступных ветвлений больше 0
     while (forks_count > 0) {
         forks_count = 0;
+        // Строим каждое ветвление по однуму шагу
         for (auto &fork : forks_) {
-            if (fork.create())
+            // Если смогли построить ветвление, то увеличиваем количество доступных ветвлений
+            if (fork.step())
                 forks_count++;
         }
     }
@@ -182,6 +185,8 @@ Field::operator std::string() {
 
 
 bool Path::create() {
+    assert(field_ != nullptr);
+
     int dir;
     int deltas[4][2] = {
         {0, -1},
@@ -267,7 +272,7 @@ int Path::get_cell_id(Cell* cell) {
 }
 
 
-bool Fork::create() {
+bool Fork::step() {
     std::vector<int> free_dirs;
     int deltas[4][2] = {
         {0, -1},
@@ -275,7 +280,6 @@ bool Fork::create() {
         {0, 1},
         {-1, 0}
     };
-    // 3. Параллельно идем по каждому из новых ветвлений до тех пор пока список новых ветвлений не пуст:
     Cell* curr = cells_.back();
     free_dirs.clear();
     
@@ -295,8 +299,8 @@ bool Fork::create() {
             // Но мы первая ячейка первая, и проверяемая ячейка не является точкой пути
             // if (self != forks[p].cells_.begin() && self - 1 != std::find(forks[p].cells_.begin(), forks[p].cells_.end(), &cell) && 
             //     std::find_if(fork_starts.begin(), fork_starts.end(), [&frk = forks[p], &cl = cell](ForkStart& p)->bool {return p.first == &cl && p.second == &frk;}) == fork_starts.end())
-            if ((self != cells_.begin() && self - 1 != std::find(cells_.begin(), cells_.end(), &cell)))
-                // && (self == cells_.begin()
+            if ((self != cells_.begin() && self - 1 != std::find(cells_.begin(), cells_.end(), &cell))
+                || (self == cells_.begin() && path_cell_ != &cell))
                 // && std::find_if(fork_starts.begin(), fork_starts.end(), [&frk = this, &cl = cell](ForkStart& p)->bool {return path_cell == &cl && cells_[0] == &frk;}) == fork_starts.end()))
                 curr->set_wall(cell_dir, true);
         }
@@ -304,14 +308,14 @@ bool Fork::create() {
             free_dirs.push_back(w);
     }
 
-    //   2. Если нет доступных направлений, то добавляем данное вентвление в список путей и удаляем ветвление из списка доступных вентвлений.
+    //   2. Если нет доступных направлений, то говорим, что данное вентвление уже построенно
     if (0 == free_dirs.size()) {           
         return false;
     }
 
-    // 1. Берем случайное доступное направление для текущей ячейки. Указываем ячейке по выбранному направлению,
-    //     что она принадлежит ответвлению и переходим в неё. Переходим к пп. 4.3.1. Если доступных направлений нет,
-    //     то завершаем создание ветвления и удаляем его из списка новых ветвлений.
+    // 1. Берем случайное доступное направление для текущей ячейки.
+    //  Указываем ячейке по выбранному направлению,
+    //  что она принадлежит ответвлению и переходим в неё.
     int dir = free_dirs[rand() % free_dirs.size()];
     curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
     bind(curr);

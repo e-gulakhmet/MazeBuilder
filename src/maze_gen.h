@@ -65,9 +65,8 @@ class Path {
             : field_(field)
             , type_(type)
         {
-            assert(field_ != nullptr);
-
-            bind(first);
+            if (first != nullptr)
+                bind(first);
         };
 
         // Копирующий конструктор
@@ -77,7 +76,9 @@ class Path {
         Path(const Path& other) 
             : field_(other.field_)
             , type_(other.type_) 
-        {};
+        {
+            assert(other.field_ != nullptr);
+        };
 
         // Конструктор переноса
         Path(Path&& other) noexcept
@@ -85,6 +86,7 @@ class Path {
             , type_(other.type_)
             , cells_(std::move(other.cells_))
         {
+            assert(other.field_ != nullptr);
             for (Cell* c : cells_ )
                 c->set_path(this);
         };
@@ -92,6 +94,8 @@ class Path {
         // Присваивание также создает путь, не имеющий принадлежащих 
         // ему ячеек.
         Path& operator=(const Path& other) {
+            assert(other.field_ != nullptr);
+
             field_ = other.field_;
             type_ = other.type_;
             cells_.clear();
@@ -99,18 +103,18 @@ class Path {
             return *this;
         };
 
-        virtual bool create();
-        bool create_fork();
+        bool create();
         int get_cell_id(Cell* cell);
         void bind(Cell* cell);
         void unbind(Cell* cell);
         Cell* get_cell(int index) {return cells_[index];};
+        int get_cells_size() {return cells_.size();};
         
         operator std::string();
 
     protected:
-        Field *field_;
-        PathType type_;
+        Field *field_ = nullptr;
+        PathType type_ = ptMain;
         std::vector<Cell*> cells_;
 };
 
@@ -128,7 +132,7 @@ class Fork: public Path{
 
         typedef std::pair<Cell*, Cell*> ForkPair;
 
-        bool create();
+        bool step();
     
     private:
         Cell* path_cell_;
@@ -144,10 +148,7 @@ class Field {
         Cell &get_cell(int x, int y);
         bool trace_route();
         int get_cell_pos(int x, int y);
-        void set_path(Path& path) {
-            path_ = path;
-        };
-        
+
         Path& get_path(int index) {return path_;};
         void clear();
 
