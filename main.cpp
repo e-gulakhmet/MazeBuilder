@@ -5,7 +5,7 @@
 
 int main(int, char**) {
     
-    Field field(8, 8, 3, 2);
+    Field field(10, 10, 3, 2);
 
     // Инициализация генератора случайных чисел
     std::srand(2);

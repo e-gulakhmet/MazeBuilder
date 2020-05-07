@@ -125,10 +125,9 @@ class Fork: public Path{
     public:
         // Первая ячейка - ячейка пути от которой пошло ветвление, второая - первая ячейка ветвления
         Fork(Field *field, PathType type, std::pair<Cell*, Cell*> start)
-        : Path(field, type, start.first)
+        : Path(field, type, start.second)
         , path_cell_(start.first)
         {
-            cells_.push_back(start.second);
         }
 
         typedef std::pair<Cell*, Cell*> ForkPair;

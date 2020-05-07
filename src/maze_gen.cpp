@@ -154,12 +154,14 @@ Field::operator std::string() {
             Cell& cell = cells_[y * w_ + x];
             switch (cell.type()) {
                 case Cell::ctNormal:
-                    if (cell.path() != nullptr)
+                    if (cell.path() == nullptr)
+                        ss << "N ";
+                    else if (cell.path() == &(*path_))
                         // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
                         ss << get_cell_pos(x, y) % 10 << ' ';
                         // ss << "* ";
                     else
-                        ss << "N ";
+                        ss << "F ";
                     break;
                 
                 case Cell::ctStart:
