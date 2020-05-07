@@ -10,7 +10,6 @@ Field::Field(int w, int h, int start, int finish)
     , h_(h)
     , start_(start)
     , finish_(finish)
-    , path_(nullptr, Path::ptMain, nullptr)
 {
     bool walls[4];
     for (int y = 0; y < h_; y++)
@@ -31,7 +30,7 @@ Field::Field(int w, int h, int start, int finish)
             cells_.push_back(cell);
         }
 
-    path_ = std::move(Path(this, Path::ptMain, &cells_[w_ * start]));
+    path_ = std::make_unique<Path>(this, Path::ptMain, &cells_[w_ * start]);
 }
 
 
@@ -44,7 +43,7 @@ Cell& Field::get_cell(int x, int y) {
 
 bool Field::trace_route() {
     // Создать путь
-    if (!path_.create()) {
+    if (!path_->create()) {
         std::cout << "Path could not be created.\n";
         return false;
     }
@@ -63,8 +62,8 @@ bool Field::trace_route() {
 
     // 1. Выбираем все ячейки пути из которых можно создать ветвление.
     // Проходимся по всем ячейкам пути
-    for (int i = 0; i < path_.get_cells_size(); i++) {
-        Cell* cell = path_.get_cell(i);
+    for (int i = 0; i < path_->get_cells_size(); i++) {
+        Cell* cell = path_->get_cell(i);
         // Проходимся по каждой стороне ячейки
         for (int w = 0; w < 4; w++) {
             // Если стенка то переходим к следующей стороне
@@ -141,7 +140,7 @@ int Field::get_cell_pos(int x, int y) { // Получение позиции в 
     if (path == nullptr)
         return -1;
 
-    return path->get_cell_id(&cell);
+    return path_->get_cell_id(&cell);
 }
 
 
@@ -175,7 +174,7 @@ Field::operator std::string() {
         ss << "\n";
     }
 
-    ss << std::string(path_) << "\n";
+    ss << std::string(*path_) << "\n";
 
     for (auto& f: forks_)
         ss << std::string(f) << "\n";

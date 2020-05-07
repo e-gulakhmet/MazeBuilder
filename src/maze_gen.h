@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <memory>
 
 class Path;
 
@@ -149,7 +150,7 @@ class Field {
         bool trace_route();
         int get_cell_pos(int x, int y);
 
-        Path& get_path(int index) {return path_;};
+        Path& get_path(int index) {return *path_;};
         void clear();
 
         operator std::string();
@@ -161,7 +162,7 @@ class Field {
         int start_, finish_; 
         
         std::vector<Cell> cells_;
-        Path path_;
+        std::unique_ptr<Path> path_;
         std::vector<Fork> forks_;
 
         bool create_path();
