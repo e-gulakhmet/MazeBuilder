@@ -3,39 +3,52 @@
 #include <cstring>
 
 #include "src/maze_gen.h"
+#include "lib/cxxopts/cxxopts.hpp"
 
-void cmd_parse(int argc, char** argv) {
-    if (argc == 1) {
-        std::cout << "Usage: " << argv[0] << " --help for help\n";
-        return;
-    }   
+auto cmd_parse(int argc, char** argv) {
+    cxxopts::Options options("test", "'cxxopts' library test");
 
-    if (strcmp(argv[1], "--help") == 0) {
-        std::cout << "Usage: maze_builder.exe [OPTIONS]\n" \
-                     "  OPTIONS are:\n" \
-                     "    -help             see help\n" \
-                     "    -r<number>        starting random seed\n" \
-                     "    -v                verbose output\n" \
-                     "    -o<text|graph>    output file text or png image\n";
+    options.add_options()
+        ("help", "Print help")
+        ("w,width", "Set field width", cxxopts::value<int>()->default_value("6"))
+        ("h,height", "Set field height", cxxopts::value<int>()->default_value("6"))
+        ("s,start", "Set start position", cxxopts::value<int>()->default_value("3"))
+        ("f,finish", "Set finish position", cxxopts::value<int>()->default_value("2"))
+        ("r,random", "Starting random seed", cxxopts::value<int>()->default_value("0"))
+        ("debug", "Enable debug")
+    ;
+
+    auto result = options.parse(argc, argv);
+
+    if (result.count("help")) {
+      std::cout << options.help() << "\n";
+      exit(0);
     }
 
-    std::vector<std::string> params;
-    for (int p = 0; p < argc; p++)
-        params.push_back(argv[p]);
+    int width = result["width"].as<int>();
+    int height = result["height"].as<int>();
+    int start_pos = result["start"].as<int>();
+    int finish_pos = result["finish"].as<int>();
+    int random_seed = result["random"].as<int>();
 
-    for (auto p : params)
-        std::cout << p << '\n';
+    std::cout << "w: " << width << "\n" \
+                 "h: " << height << "\n" \
+                 "s: " << start_pos << "\n" \
+                 "f: " << finish_pos << "\n" \
+                 "r: " << random_seed << "\n";
+
+    return result;
 }
 
 
 int main(int argc, char** argv) {
 
-    cmd_parse(argc, argv);
+    auto cmd_info = cmd_parse(argc, argv);    
 
-    Field field(10, 10, 3, 2);
+    Field field(cmd_info["width"].as<int>(), cmd_info["height"].as<int>(), cmd_info["start"].as<int>(), cmd_info["finish"].as<int>());
 
     // Инициализация генератора случайных чисел
-    std::srand(2);
+    std::srand(cmd_info["random"].as<int>());
 
     field.trace_route();
 
