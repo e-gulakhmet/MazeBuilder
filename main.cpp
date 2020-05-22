@@ -99,6 +99,7 @@ int main(int argc, char** argv) {
         std::cout << "Routes created.\n";
         std::cout << std::string(field);
     }
+    
     draw_bitmap(field);
 
     return 0;
