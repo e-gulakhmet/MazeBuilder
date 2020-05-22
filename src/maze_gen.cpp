@@ -110,7 +110,7 @@ bool Field::trace_route() {
     }
     
     // Зачистить непривязанные ячейки
-    // clear();
+    clear();
 
     return true;
 }
@@ -202,12 +202,6 @@ bool Path::create() {
 
     while (true) {
         free_dirs.clear();
-        std::cout << "\n";
-        std::cout << "walls_info: ";
-        for (int wall = 0; wall <= 3; wall++) {
-            std::cout << curr->walls(static_cast<Cell::CellDirection>(wall)) << " ";
-        }
-        std::cout << "\n";
 
         //   2. Если достигнута ячейка выхода, завершаем построение пути.
         if (curr->type() == Cell::ctFinish)
@@ -228,7 +222,6 @@ bool Path::create() {
                 // Если мы не первая ячейка и проверяемая ячейка не является предудыщей, то ставим стенку
                 if (self != cells_.begin() && self - 1 != std::find(cells_.begin(), cells_.end(), &cell)) {
                     curr->set_wall(cell_dir, true);
-                    std::cout << "close_wall: " << w << '\n';
                 }
             }
             else
@@ -244,13 +237,10 @@ bool Path::create() {
         }
 
         // 4. Случайно выбираем направление следующего шага из доступных.
-        std::cout << "sellecting_new_cell: ";
         dir = free_dirs[rand() % free_dirs.size()];
-        std::cout << dir << '\n';
         curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
         bind(curr);
 
-        std::cout << "\n";
 
         //   2. Иначе переходим к 3.4 шагу.
     }
