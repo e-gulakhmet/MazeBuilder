@@ -4,6 +4,9 @@
 
 #include "src/maze_gen.h"
 #include "lib/cxxopts/cxxopts.hpp"
+#include "lib/bitmap/bitmap_image.hpp"
+
+
 
 auto cmd_parse(int argc, char** argv) {
     cxxopts::Options options("test", "'cxxopts' library test");
@@ -41,6 +44,7 @@ auto cmd_parse(int argc, char** argv) {
 }
 
 
+
 int main(int argc, char** argv) {
 
     auto cmd_info = cmd_parse(argc, argv);    
@@ -55,6 +59,81 @@ int main(int argc, char** argv) {
     std::cout << "Routes created.\n";
 
     std::cout << std::string(field);
+
+    // Отображаем информацию в файле
+    bitmap_image image(600, 600);
+    image.set_all_channels(0, 0, 0);
+    image_drawer draw(image);
+
+    draw.pen_width(3);
+    draw.pen_color(255, 255, 255);
+
+    // Рисуем поле
+    for (int y = 0; y < field.get_height(); y++) {
+        for (int x = 0; x < field.get_width(); x++) {
+            // draw.rectangle(x * image.width() / field.get_width(), y * image.height() / field.get_height(), (x + 1) * image.width() / 6, (y + 1) * image.height() / 6);
+            Cell& cell = field.get_cell(x, y);
+            for (int w = 0; w < 4; w++) {
+                if (cell.walls(static_cast<Cell::CellDirection>(w))){
+                    switch (static_cast<Cell::CellDirection>(w)) {
+                        case Cell::cdTop:
+                            draw.line_segment(cell.x() * image.width() / field.get_width(), cell.y() * image.height() / field.get_height(),
+                                                (cell.x() + 1) * image.width() / field.get_width(), cell.y() * image.height() / field.get_height());
+                            break;
+                        
+                        case Cell::cdRight:
+                            draw.line_segment((cell.x() + 1) * image.width() / field.get_width(), cell.y() * image.height() / field.get_height(),
+                                              (cell.x() + 1) * image.width() / field.get_width(), (cell.y() + 1) * image.height() / field.get_height());
+                            break;
+                        
+                        case Cell::cdBottom:
+                            draw.line_segment(cell.x() * image.width() / field.get_width(), (cell.y() + 1) * image.height() / field.get_height(),
+                                              (cell.x() + 1) * image.width() / field.get_width(), (cell.y() + 1) * image.height() / field.get_height());
+                            break;
+
+                        case Cell::cdLeft:
+                            draw.line_segment(cell.x() * image.width() / field.get_width(), cell.y() * image.height() / field.get_height(),
+                                              cell.x() * image.width() / field.get_width(), (cell.y() + 1) * image.height() / field.get_height());
+                            break;
+                    }
+                }
+
+            }
+            
+
+
+    //  for (int y = 0; y < h_; y++) {
+    //     for (int x = 0; x < w_; x++) {
+    //         Cell& cell = cells_[y * w_ + x];
+    //         switch (cell.type()) {
+    //             case Cell::ctNormal:
+    //                 if (cell.path() == nullptr)
+    //                     ss << "N ";
+    //                 else if (cell.path() == &(*path_))
+    //                     // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
+    //                     ss << get_cell_pos(x, y) % 10 << ' ';
+    //                     // ss << "* ";
+    //                 else
+    //                     ss << "F ";
+    //                 break;
+                
+    //             case Cell::ctStart:
+    //                 ss << "S ";
+    //                 break;
+                
+    //             case Cell::ctFinish:
+    //                 ss << "F ";
+    //                 break;
+    //         }
+    //     }
+    //     ss << "\n";
+    // }
+        }
+    }
+
+
+    image.save_image("image.bmp");
+
 
     return 0;
 }

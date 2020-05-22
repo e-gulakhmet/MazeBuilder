@@ -149,8 +149,12 @@ class Field {
         bool trace_route();
         int get_cell_pos(int x, int y);
 
-        Path& get_path(int index) {return *path_;};
+        Path& get_path() {return *path_;};
         void clear();
+        int get_width() {return w_;};
+        int get_height() {return h_;};
+        int get_start() {return start_;};
+        int get_finish() {return finish_;};
 
         operator std::string();
     
