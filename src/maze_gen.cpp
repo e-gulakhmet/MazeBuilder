@@ -47,9 +47,7 @@ bool Field::trace_route() {
         std::cout << "Path could not be created.\n";
         return false;
     }
-    else {
-        std::cout << "Path sucessfully created.\n";
-    }
+
 
     // Создать ветвления
     std::vector<Cell*> free_cells;
@@ -144,45 +142,45 @@ int Field::get_cell_pos(int x, int y) { // Получение позиции в 
 }
 
 
-Field::operator std::string() {
-    std::ostringstream ss;
+// Field::operator std::string() {
+//     std::ostringstream ss;
 
-    ss << w_ << " " << h_ << "\n";
+//     ss << w_ << " " << h_ << "\n";
 
-    for (int y = 0; y < h_; y++) {
-        for (int x = 0; x < w_; x++) {
-            Cell& cell = cells_[y * w_ + x];
-            switch (cell.type()) {
-                case Cell::ctNormal:
-                    if (cell.path() == nullptr)
-                        ss << "N ";
-                    else if (cell.path() == &(*path_))
-                        // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
-                        ss << get_cell_pos(x, y) % 10 << ' ';
-                        // ss << "* ";
-                    else
-                        ss << "F ";
-                    break;
+//     for (int y = 0; y < h_; y++) {
+//         for (int x = 0; x < w_; x++) {
+//             Cell& cell = cells_[y * w_ + x];
+//             switch (cell.type()) {
+//                 case Cell::ctNormal:
+//                     if (cell.path() == nullptr)
+//                         ss << "N ";
+//                     else if (cell.path() == &(*path_))
+//                         // ss << pathes_[0].get_cell_id(&cell) % 10 << ' ';
+//                         ss << get_cell_pos(x, y) % 10 << ' ';
+//                         // ss << "* ";
+//                     else
+//                         ss << "F ";
+//                     break;
                 
-                case Cell::ctStart:
-                    ss << "S ";
-                    break;
+//                 case Cell::ctStart:
+//                     ss << "S ";
+//                     break;
                 
-                case Cell::ctFinish:
-                    ss << "F ";
-                    break;
-            }
-        }
-        ss << "\n";
-    }
+//                 case Cell::ctFinish:
+//                     ss << "F ";
+//                     break;
+//             }
+//         }
+//         ss << "\n";
+//     }
 
-    ss << std::string(*path_) << "\n";
+//     ss << std::string(*path_) << "\n";
 
-    for (auto& f: forks_)
-        ss << std::string(f) << "\n";
+//     for (auto& f: forks_)
+//         ss << std::string(f) << "\n";
 
-    return ss.str();
-}
+//     return ss.str();
+// }
 
 
 bool Path::create() {
@@ -333,14 +331,14 @@ void Path::unbind(Cell* cell) {
 }
 
 
-Path::operator std::string() {
-    std::ostringstream ss;
+// Path::operator std::string() {
+//     std::ostringstream ss;
 
-    for (int i=0; i<cells_.size(); i++) {
-        ss << i << " @ (";
-        ss << cells_[i]->x() << ',' << cells_[i]->y() << ")\n";
-    }
+//     for (int i=0; i<cells_.size(); i++) {
+//         ss << i << " @ (";
+//         ss << cells_[i]->x() << ',' << cells_[i]->y() << ")\n";
+//     }
 
-    return ss.str();
-}
+//     return ss.str();
+// }
 

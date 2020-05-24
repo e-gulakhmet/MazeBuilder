@@ -4,7 +4,13 @@ project(maze_builder VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-add_executable(maze_builder main.cpp src/maze_gen.cpp lib/cxxopts/cxxopts.hpp lib/bitmap/bitmap_image.hpp)
+add_executable(maze_builder
+    main.cpp
+    src/maze_gen.cpp
+    src/output.cpp
+    lib/cxxopts/cxxopts.hpp
+    lib/bitmap/bitmap_image.hpp
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

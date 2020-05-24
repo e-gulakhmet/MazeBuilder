@@ -111,7 +111,7 @@ class Path {
         Cell* get_cell(int index) {return cells_[index];};
         int get_cells_size() {return cells_.size();};
         
-        operator std::string();
+        // operator std::string();
 
     protected:
         Field *field_ = nullptr;
@@ -155,8 +155,10 @@ class Field {
         int get_height() {return h_;};
         int get_start() {return start_;};
         int get_finish() {return finish_;};
+        Fork& get_fork(int index) {return forks_[index];};
+        int get_forks_size() {return forks_.size();};
 
-        operator std::string();
+        // operator std::string();
     
     private:
         int w_, h_;
