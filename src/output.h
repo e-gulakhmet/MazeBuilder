@@ -13,8 +13,8 @@ class Presenter{
     public:
         Presenter(Field& field);
 
-        void bitmap(std::string file_name, int file_w, int file_h);
-        void debug(int level);
+        void bitmap(std::string file_name, int file_w, int file_h); // Создаем графический файл
+        void debug(int level); // Выводим информацию о поле и т.д.
     
     private:
         Field& field_;
