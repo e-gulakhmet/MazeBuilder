@@ -6,11 +6,18 @@
 
 
 Field::Field(int w, int h, int start, int finish)
-    : w_(w)
-    , h_(h)
-    , start_(start)
+    : start_(start)
     , finish_(finish)
 {
+    if (w < 3 && h < 3){
+        w_ = 3;
+        h_ = 3;
+    }
+    else {
+        w_ = w;
+        h_ = h;
+    }
+    
     bool walls[4];
     for (int y = 0; y < h_; y++)
         for (int x = 0; x < w_; x++) {

@@ -11,13 +11,16 @@
 
 class Presenter{
     public:
-        Presenter(Field& field);
+        Presenter(Field& field, std::string file_name, int file_w, int file_h);
 
-        void bitmap(std::string file_name, int file_w, int file_h); // Создаем графический файл
+        void bitmap(bool path_light); // Создаем графический файл
         void debug(int level); // Выводим информацию о поле и т.д.
     
     private:
         Field& field_;
+        std::string name_;
+        int w_;
+        int h_;
 
         void field_debug();
         void path_debug(Path& path);

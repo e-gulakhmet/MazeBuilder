@@ -8,7 +8,6 @@
 #include "lib/bitmap/bitmap_image.hpp"
 
 
-// TODO: Добавить функцию подсветки пути и форков
 // TODO: Добавить ограничения по минимальному размеру окна
 
 
@@ -26,6 +25,7 @@ auto cmd_parse(int argc, char** argv) {
         ("debug", "Enable debug", cxxopts::value<int>()->default_value("0"))
         ("image_widht", "Set image file widht", cxxopts::value<int>()->default_value("600"))
         ("image_height", "Set image file height", cxxopts::value<int>()->default_value("600"))
+        ("path", "Enable path and forks highlight", cxxopts::value<bool>()->default_value("false"))
     ;
 
     auto result = options.parse(argc, argv);
@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
 
     field.trace_route();
 
-    Presenter present(field);
+    Presenter present(field, "maze.bmp", 600, 600);
 
     present.debug(cmd_info["debug"].as<int>());
     std::cout << "\n";
-    present.bitmap("maze.bmp", cmd_info["image_widht"].as<int>(), cmd_info["image_height"].as<int>());
+    present.bitmap(cmd_info["path"].as<bool>());
 
     return 0;
 }
