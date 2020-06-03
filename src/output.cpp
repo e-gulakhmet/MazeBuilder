@@ -30,11 +30,12 @@ void Presenter::bitmap(bool path_light) {
         for (int x = 0; x < field_.get_width(); x++) {
             Cell& cell = field_.get_cell(x, y);
             // Если подсветка пути включена
-            if (path_light) {
+            if (path_light && cell.path() != nullptr) {
                 if (cell.path() == &(field_.get_path()))
                     canvas.pen_color(100, 100, 0);
-                else if (cell.path() != nullptr && cell.path() != &(field_.get_path()))
+                else
                     canvas.pen_color(100, 0, 0);
+                    
 
                 canvas.fill_rectangle(canvas.min_x() + cell.x() * w_/ field_.get_width() + w_ / field_.get_width() / 3,
                                       canvas.min_y() + cell.y() * h_/ field_.get_height() + h_ / field_.get_height() / 3,

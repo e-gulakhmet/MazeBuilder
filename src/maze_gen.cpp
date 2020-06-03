@@ -64,6 +64,7 @@ bool Field::trace_route() {
         {0, 1},
         {-1, 0}
     };
+    int invert_dir[4] = {2, 3, 0, 1};
 
     // 1. Выбираем все ячейки пути из которых можно создать ветвление.
     // Проходимся по всем ячейкам пути
@@ -92,7 +93,7 @@ bool Field::trace_route() {
 
             Cell* next_cell = &(get_cell(path_cell->x() + deltas[w][0], path_cell->y() + deltas[w][1]));
             // Если нашли доступное направление, то сдвигаемся на ячейку по этому направлению и создаем ветвление со стартом в этой ячейке,
-            if (next_cell->path() == nullptr) {
+            if (next_cell->path() == nullptr && !next_cell->walls(static_cast<Cell::CellDirection>(invert_dir[w]))) {
                 // Связываем ячейку пути, с которого стартовало ветвление с самим ветвлением
                 Fork fork(this, Path::ptFork, Fork::ForkPair(path_cell, next_cell));
                 // добавляем его в список путей доступных для ветвления,
@@ -115,25 +116,25 @@ bool Field::trace_route() {
     }
     
     // Зачистить непривязанные ячейки
-    clear();
+    // clear();
 
     return true;
 }
 
 
-void Field::clear() {
-    for (int y = 0; y < h_; y++)
-        for (int x = 0; x < w_; x++) {
-            Cell& cell = get_cell(x, y);
+// void Field::clear() {
+//     for (int y = 0; y < h_; y++)
+//         for (int x = 0; x < w_; x++) {
+//             Cell& cell = get_cell(x, y);
 
-            if (cell.path() == nullptr) {
-                cell.set_wall(Cell::cdTop, true);
-                cell.set_wall(Cell::cdRight, true);
-                cell.set_wall(Cell::cdBottom, true);
-                cell.set_wall(Cell::cdLeft, true);
-            }
-        }
-}
+//             if (cell.path() == nullptr) {
+//                 cell.set_wall(Cell::cdTop, true);
+//                 cell.set_wall(Cell::cdRight, true);
+//                 cell.set_wall(Cell::cdBottom, true);
+//                 cell.set_wall(Cell::cdLeft, true);
+//             }
+//         }
+// }
 
 
 int Field::get_cell_pos(int x, int y) { // Получение позиции в ячейки в пути
@@ -276,6 +277,7 @@ bool Fork::step() {
         {0, 1},
         {-1, 0}
     };
+    int invert_dir[4] = {2, 3, 0, 1};
     Cell* curr = cells_.back();
     free_dirs.clear();
     
@@ -300,7 +302,7 @@ bool Fork::step() {
                 // && std::find_if(fork_starts.begin(), fork_starts.end(), [&frk = this, &cl = cell](ForkStart& p)->bool {return path_cell == &cl && cells_[0] == &frk;}) == fork_starts.end()))
                 curr->set_wall(cell_dir, true);
         }
-        else
+        else if (!cell.walls(static_cast<Cell::CellDirection>(invert_dir[w])))
             free_dirs.push_back(w);
     }
 
