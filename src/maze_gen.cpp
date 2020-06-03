@@ -194,13 +194,13 @@ int Field::get_cell_pos(int x, int y) { // Получение позиции в 
 bool Path::create() {
     assert(field_ != nullptr);
 
-    int dir;
     int deltas[4][2] = {
         {0, -1},
         {1, 0},
         {0, 1},
         {-1, 0}
     };
+    std::vector<int> dirs;
     std::vector<int> free_dirs;
     // Создаем путь
     // 1. Начинаем со стартовой ячейки, устанавливаем её первым элементом пути.
@@ -238,13 +238,14 @@ bool Path::create() {
         if (0 == free_dirs.size()) {
             unbind(curr);
             curr = cells_.back();
-            curr->set_wall(static_cast<Cell::CellDirection>(dir), true);
+            curr->set_wall(static_cast<Cell::CellDirection>(dirs.back()), true);
+            dirs.pop_back();
             continue;
         }
 
         // 4. Случайно выбираем направление следующего шага из доступных.
-        dir = free_dirs[rand() % free_dirs.size()];
-        curr = &(field_->get_cell(curr->x() + deltas[dir][0], curr->y() + deltas[dir][1]));
+        dirs.push_back(free_dirs[rand() % free_dirs.size()]);
+        curr = &(field_->get_cell(curr->x() + deltas[dirs.back()][0], curr->y() + deltas[dirs.back()][1]));
         bind(curr);
 
 
