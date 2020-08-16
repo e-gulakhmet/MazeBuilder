@@ -44,8 +44,7 @@ int main(int argc, char** argv) {
 
     auto cmd_info = cmd_parse(argc, argv);    
 
-    // Field field(cmd_info["width"].as<int>(), cmd_info["height"].as<int>(), cmd_info["start"].as<int>(), cmd_info["finish"].as<int>());
-    Field field(10, 10, cmd_info["start"].as<int>(), cmd_info["finish"].as<int>());
+    Field field(cmd_info["width"].as<int>(), cmd_info["height"].as<int>(), cmd_info["start"].as<int>(), cmd_info["finish"].as<int>());
 
     // Инициализация генератора случайных чисел
     std::srand(cmd_info["random"].as<int>());
@@ -56,8 +55,7 @@ int main(int argc, char** argv) {
 
     present.debug(cmd_info["debug"].as<int>());
     std::cout << "\n";
-    //present.bitmap(cmd_info["path"].as<bool>());
-    present.bitmap(1);
+    present.bitmap(cmd_info["path"].as<bool>());
 
     return 0;
 }
